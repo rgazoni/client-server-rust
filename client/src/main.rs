@@ -1,25 +1,30 @@
 use std::net::UdpSocket;
-use std::thread;
+use std::{thread, time};
 
 fn main() {
-    let thread_1 = thread::spawn(move || {
-        let socket = UdpSocket::bind("127.0.0.1:34253").expect("couldn't bind to address");
-        loop {
-            socket
-                .send_to(&['a' as u8; 1], "127.0.0.1:34254")
-                .expect("couldn't send data");
-        }
-    });
+    // Configuration Settings
+    let ip_addr = "127.0.0.1";
+    let port_addr = "34254";
+    let sleep_duration = 3_000;
 
-    let thread_2 = thread::spawn(move || {
-        let socket = UdpSocket::bind("127.0.0.1:34256").expect("couldn't bind to address");
-        loop {
-            socket
-                .send_to(&['z' as u8; 1], "127.0.0.1:34254")
-                .expect("couldn't send data");
+    //Program
+    let socket = UdpSocket::bind("127.0.0.1:34253").expect("Couldn't bind to address");
+    // Pattern is a..z
+    let mut pattern: u8 = 'a' as u8;
+    loop {
+        socket
+            .send_to(&[pattern as u8; 1], format!("{}:{}", ip_addr, port_addr))
+            .expect("Couldn't send data");
+        println!(
+            "Message was sent successfully to {}:{} with the message: {}",
+            ip_addr, port_addr, pattern as char
+        );
+
+        if pattern as char == 'z' {
+            pattern = 'a' as u8;
+        } else {
+            pattern += 1;
         }
-    });
-    // some work here
-    let res1 = thread_1.join();
-    let res2 = thread_2.join();
+        thread::sleep(time::Duration::from_millis(sleep_duration));
+    }
 }
