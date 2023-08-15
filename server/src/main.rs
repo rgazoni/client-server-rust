@@ -1,18 +1,17 @@
 use std::collections::HashMap;
-use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::net::UdpSocket;
+use std::net::{SocketAddr, UdpSocket};
 
 fn main() -> std::io::Result<()> {
     {
-        let socket = UdpSocket::bind("127.0.0.1:34254")?;
-        let mut conn: HashMap<String, String> = HashMap::with_capacity(1000);
+        let socket: UdpSocket = UdpSocket::bind("127.0.0.1:34254")?;
+        let mut conn: HashMap<String, String> = HashMap::with_capacity(500);
 
         loop {
             // Caracter per time as the business logic determines
-            let mut buf = [0; 1];
-            let (amt, src) = socket.recv_from(&mut buf)?;
+            let mut buf: [u8; 1] = [0; 1];
+            let (amt, src): (usize, SocketAddr) = socket.recv_from(&mut buf)?;
             let addr: String = src.to_string();
 
             // Create a filename
@@ -29,12 +28,11 @@ fn main() -> std::io::Result<()> {
                 &conn.get(&addr).unwrap(),
                 &buf
             );
+
             let mut file = OpenOptions::new()
                 .append(true)
                 .open(&conn.get(&addr).unwrap())?;
-            // let mut file = File::create(&conn.get(&addr).unwrap())?;
             file.write_all(&buf)?;
         }
     }
-    Ok(())
 }
