@@ -31,6 +31,7 @@ fn main() -> std::io::Result<()> {
 
             let mut file = OpenOptions::new()
                 .append(true)
+                .create(true)
                 .open(&conn.get(&addr).unwrap())?;
             file.write_all(&buf)?;
         }
