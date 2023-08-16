@@ -32,7 +32,7 @@ fn main() -> std::io::Result<()> {
             let mut file = OpenOptions::new()
                 .append(true)
                 .create(true)
-                .open(&conn.get(&addr).unwrap())?;
+                .open((&conn.get(&addr).unwrap()).replace(":", "_"))?;
             file.write_all(&buf)?;
         }
     }
