@@ -38,7 +38,7 @@ impl Connection {
 
 fn main() -> std::io::Result<()> {
     {
-        let socket: UdpSocket = UdpSocket::bind("127.0.0.1:34254")?;
+        let socket: UdpSocket = UdpSocket::bind("192.168.1.3:34254")?;
         let mut conn: HashMap<String, Connection> = HashMap::with_capacity(500);
         let start = Instant::now();
 
@@ -96,9 +96,35 @@ fn main() -> std::io::Result<()> {
             )?;
         }
         println!("While has been finished!");
+        let mut num_packet_received = 0;
+        let mut num_packet_loss = 0;
+        let mut num_conn = 0;
+        println!("------------------------------------------");
+        println!("Performance per client!");
         for (key, value) in conn.into_iter() {
-            println!("KEY - {}, VALUE {:?}", key, value);
+            println!(
+                "Address Connection: {}, Number packets received: {}, Number packets lost: {} ",
+                value.addr, value.packet_arrived_counter, value.packet_loss_counter
+            );
+            num_packet_received += value.packet_arrived_counter;
+            num_packet_loss += value.packet_loss_counter;
+            num_conn += 1;
         }
+        println!("------------------------------------------");
+        println!("Total Statistics -> Number of received packets: {}, Number of lost packets: {}, Number of connections: {} ", num_packet_received, num_packet_loss, num_conn);
+        println!("------------------------------------------");
+
+        let mut file = OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open("./data/overwall_statistics.txt")?;
+        file.write_all(
+            format!(
+                "num_conn: {}, received_packets: {}, lost_packets: {}\n",
+                num_conn, num_packet_received, num_packet_loss
+            )
+            .as_bytes(),
+        )?;
         Ok(())
     }
 }
